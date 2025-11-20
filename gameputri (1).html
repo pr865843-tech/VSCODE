@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEOMETRI - Game Matematika Interaktif</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #ff69b4, #4169e1);
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .math-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.1;
+        }
+        
+        .math-symbol {
+            position: absolute;
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.3);
+            animation: float 20s infinite linear;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-100vh) rotate(360deg); }
+        }
+        
+        .game-container {
+            background-color: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            margin: 20px auto;
+            max-width: 900px;
+        }
+        
+        .btn-game {
+            background: linear-gradient(45deg, #ff69b4, #4169e1);
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-weight: bold;
+            transition: all 0.3s;
+            margin: 10px;
+        }
+        
+        .btn-game:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .question-box {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .option-btn {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 10px;
+            padding: 12px;
+            margin: 8px 0;
+            width: 100%;
+            text-align: left;
+            transition: all 0.3s;
+        }
+        
+        .option-btn:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: translateX(10px);
+        }
+        
+        .input-answer {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 10px;
+            padding: 12px;
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        .input-answer::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .score-display {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.2);
+            margin: 20px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 5px;
+            background: linear-gradient(45deg, #ff69b4, #4169e1);
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .explanation-box {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .geogebra-frame {
+            width: 100%;
+            height: 400px;
+            border: none;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        h1, h2, h3 {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .correct {
+            background-color: rgba(0, 255, 0, 0.3) !important;
+            border-color: green !important;
+        }
+        
+        .wrong {
+            background-color: rgba(255, 0, 0, 0.3) !important;
+            border-color: red !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background dengan simbol matematika -->
+    <div class="math-bg" id="mathBackground"></div>
+    
+    <div class="container py-5">
+        <div class="game-container">
+            <!-- Layar Awal -->
+            <div id="startScreen">
+                <h1 class="text-center mb-4">GEOMETRI</h1>
+                <h2 class="text-center mb-4">Game Matematika Interaktif</h2>
+                <p class="text-center mb-4">Selamat datang di game geometri! Uji pengetahuanmu tentang bangun ruang dan raih skor tertinggi!</p>
+                
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <h3 class="mb-3">Petunjuk Permainan:</h3>
+                        <ul>
+                            <li>Game terdiri dari 12 pertanyaan tentang geometri</li>
+                            <li>Ada dua jenis pertanyaan: pilihan ganda dan isian singkat</li>
+                            <li>Gunakan tombol "Pause" untuk menghentikan game sementara</li>
+                            <li>Setiap jawaban benar akan memberikan penjelasan</li>
+                            <li>Gunakan tombol "Geogebra" untuk melihat visualisasi 3D</li>
+                            <li>Dapatkan skor tertinggi dengan menjawab dengan benar dan cepat!</li>
+                        </ul>
+                        
+                        <div class="text-center mt-4">
+                            <button id="startBtn" class="btn-game btn-lg pulse">Mulai Game</button>
+                            <button id="materiBtn" class="btn-game btn-lg">Lihat Materi</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Layar Materi -->
+            <div id="materiScreen" class="hidden">
+                <h2 class="text-center mb-4">Materi Geometri - Bangun Ruang</h2>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="question-box">
+                            <h4>Kubus</h4>
+                            <p><strong>Ciri-ciri:</strong> 6 sisi persegi, 12 rusuk sama panjang, 8 titik sudut</p>
+                            <p><strong>Rumus Volume:</strong> V = s³</p>
+                            <p><strong>Rumus Luas Permukaan:</strong> L = 6 × s²</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="question-box">
+                            <h4>Balok</h4>
+                            <p><strong>Ciri-ciri:</strong> 6 sisi persegi panjang, 12 rusuk, 8 titik sudut</p>
+                            <p><strong>Rumus Volume:</strong> V = p × l × t</p>
+                            <p><strong>Rumus Luas Permukaan:</strong> L = 2(pl + pt + lt)</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="question-box">
+                            <h4>Tabung</h4>
+                            <p><strong>Ciri-ciri:</strong> 2 sisi lingkaran, 1 sisi lengkung</p>
+                            <p><strong>Rumus Volume:</strong> V = π × r² × t</p>
+                            <p><strong>Rumus Luas Permukaan:</strong> L = 2πr(r + t)</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="question-box">
+                            <h4>Kerucut</h4>
+                            <p><strong>Ciri-ciri:</strong> 1 sisi lingkaran, 1 sisi lengkung, 1 titik puncak</p>
+                            <p><strong>Rumus Volume:</strong> V = ⅓ × π × r² × t</p>
+                            <p><strong>Rumus Luas Permukaan:</strong> L = πr(r + s)</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="question-box">
+                            <h4>Bola</h4>
+                            <p><strong>Ciri-ciri:</strong> 1 sisi lengkung, tidak memiliki rusuk atau titik sudut</p>
+                            <p><strong>Rumus Volume:</strong> V = 4/3 × π × r³</p>
+                            <p><strong>Rumus Luas Permukaan:</strong> L = 4 × π × r²</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="question-box">
+                            <h4>Prisma Segitiga</h4>
+                            <p><strong>Ciri-ciri:</strong> 5 sisi (2 segitiga, 3 persegi panjang), 9 rusuk, 6 titik sudut</p>
+                            <p><strong>Rumus Volume:</strong> V = Luas alas × tinggi</p>
+                            <p><strong>Rumus Luas Permukaan:</strong> L = (2 × luas alas) + (keliling alas × tinggi)</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <button id="backFromMateriBtn" class="btn-game">Kembali ke Menu</button>
+                    <button id="startFromMateriBtn" class="btn-game">Mulai Game</button>
+                </div>
+            </div>
+            
+            <!-- Layar Game -->
+            <div id="gameScreen" class="hidden">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Pertanyaan <span id="questionNumber">1</span>/12</h2>
+                    <div>
+                        <button id="pauseBtn" class="btn-game">Pause</button>
+                        <button id="materiDuringGameBtn" class="btn-game">Materi</button>
+                    </div>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar"></div>
+                </div>
+                
+                <div class="score-display">
+                    Skor: <span id="scoreValue">0</span>
+                </div>
+                
+                <div class="question-box">
+                    <h3 id="questionText">Pertanyaan akan muncul di sini</h3>
+                    
+                    <!-- Untuk pertanyaan pilihan ganda -->
+                    <div id="multipleChoiceOptions" class="mt-4">
+                        <!-- Opsi akan diisi oleh JavaScript -->
+                    </div>
+                    
+                    <!-- Untuk pertanyaan isian -->
+                    <div id="shortAnswerInput" class="mt-4 hidden">
+                        <input type="text" class="input-answer" id="answerInput" placeholder="Ketik jawabanmu di sini...">
+                        <button id="submitAnswerBtn" class="btn-game mt-3">Submit Jawaban</button>
+                    </div>
+                </div>
+                
+                <div class="explanation-box" id="explanationBox">
+                    <h4>Penjelasan:</h4>
+                    <p id="explanationText"></p>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <button id="geogebraBtn" class="btn-game">Buka di Geogebra</button>
+                    <button id="nextQuestionBtn" class="btn-game hidden">Pertanyaan Berikutnya</button>
+                </div>
+            </div>
+            
+            <!-- Layar Pause -->
+            <div id="pauseScreen" class="hidden text-center">
+                <h2 class="mb-4">Game Dijeda</h2>
+                <p class="mb-4">Game sedang di-pause. Klik tombol di bawah untuk melanjutkan.</p>
+                <button id="resumeBtn" class="btn-game btn-lg">Lanjutkan Game</button>
+                <button id="backToMenuFromPauseBtn" class="btn-game btn-lg">Kembali ke Menu</button>
+            </div>
+            
+            <!-- Layar Selesai -->
+            <div id="endScreen" class="hidden text-center">
+                <h2 class="mb-4">Game Selesai!</h2>
+                <p class="mb-4">Selamat! Anda telah menyelesaikan semua pertanyaan.</p>
+                <div class="score-display">
+                    Skor Akhir: <span id="finalScore">0</span>
+                </div>
+                <div class="mt-4">
+                    <button id="restartBtn" class="btn-game btn-lg">Main Lagi</button>
+                    <button id="backToMenuBtn" class="btn-game btn-lg">Kembali ke Menu</button>
+                    <button id="materiAfterGameBtn" class="btn-game btn-lg">Lihat Materi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+    <audio id="bgMusic" loop src="https://assets.mixkit.co/sfx/preview/mixkit-game-show-suspense-waiting-667.mp3"></audio>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // PERBAIKAN: Data pertanyaan yang LENGKAP dan TERURUT dengan benar
+        const questions = [
+            // Soal 1
+            {
+                type: "multiple",
+                text: "Sebuah akuarium berbentuk balok memiliki panjang 80 cm, lebar 40 cm, dan tinggi 50 cm. Jika akuarium tersebut diisi air hingga 3/4 bagian, berapa volume air dalam akuarium?",
+                options: [
+                    "96.000 cm³",
+                    "120.000 cm³",
+                    "128.000 cm³",
+                    "160.000 cm³"
+                ],
+                correctAnswer: 1,
+                explanation: "Volume balok = p × l × t = 80 × 40 × 50 = 160.000 cm³. Karena diisi 3/4 bagian, maka volume air = 3/4 × 160.000 = 120.000 cm³."
+            },
+            // Soal 2
+            {
+                type: "multiple",
+                text: "Sebuah tenda berbentuk prisma segitiga dengan alas segitiga sama sisi yang panjang sisinya 3 m. Jika tinggi tenda 4 m, berapa luas kain yang dibutuhkan untuk membuat tenda tersebut (tanpa alas)?",
+                options: [
+                    "30 m²",
+                    "33 m²",
+                    "36 m²",
+                    "39 m²"
+                ],
+                correctAnswer: 3,
+                explanation: "Luas segitiga = (√3/4) × s² = (1,732/4) × 9 ≈ 3,897 m². Luas sisi tegak = 3 × (3 × 4) = 36 m². Total luas = 3,897 + 36 ≈ 39 m²."
+            },
+            // Soal 3
+            {
+                type: "multiple",
+                text: "Sebuah bola memiliki volume 288π cm³. Berapa luas permukaan bola tersebut?",
+                options: [
+                    "144π cm²",
+                    "169π cm²",
+                    "196π cm²",
+                    "225π cm²"
+                ],
+                correctAnswer: 0,
+                explanation: "Volume bola = 4/3 πr³ = 288π → r³ = 216 → r = 6 cm. Luas permukaan = 4πr² = 4π × 36 = 144π cm²."
+            },
+            // Soal 4
+            {
+                type: "short",
+                text: "Sebuah kemasan makanan berbentuk tabung memiliki diameter 14 cm dan tinggi 20 cm. Berapa volume kemasan tersebut? (Gunakan π = 22/7)",
+                correctAnswer: "3080",
+                explanation: "Jari-jari = diameter/2 = 7 cm. Volume tabung = πr²t = (22/7) × 7² × 20 = (22/7) × 49 × 20 = 22 × 7 × 20 = 3080 cm³."
+            },
+            // Soal 5 - INI YANG BIASANYA ERROR
+            {
+                type: "short",
+                text: "Sebuah kerucut memiliki jari-jari 6 cm dan tinggi 8 cm. Berapa volume kerucut tersebut? (Gunakan π = 3,14)",
+                correctAnswer: "301.44",
+                explanation: "Volume kerucut = 1/3 πr²t = 1/3 × 3,14 × 36 × 8 = 1/3 × 3,14 × 288 = 3,14 × 96 = 301,44 cm³."
+            },
+            // Soal 6
+            {
+                type: "multiple",
+                text: "Sebuah limas segi empat beraturan memiliki panjang sisi alas 10 cm dan tinggi limas 12 cm. Berapa volume limas tersebut?",
+                options: [
+                    "300 cm³",
+                    "400 cm³",
+                    "500 cm³",
+                    "600 cm³"
+                ],
+                correctAnswer: 1,
+                explanation: "Volume limas = 1/3 × luas alas × tinggi = 1/3 × (10 × 10) × 12 = 1/3 × 100 × 12 = 400 cm³."
+            },
+            // Soal 7
+            {
+                type: "short",
+                text: "Sebuah kubus memiliki volume 512 cm³. Berapa panjang diagonal ruang kubus tersebut?",
+                correctAnswer: "8√3",
+                explanation: "Volume kubus = s³ = 512 → s = 8 cm. Diagonal ruang = s√3 = 8√3 cm."
+            },
+            // Soal 8
+            {
+                type: "multiple",
+                text: "Sebuah prisma segitiga memiliki alas segitiga siku-siku dengan panjang sisi 6 cm, 8 cm, dan 10 cm. Jika tinggi prisma 15 cm, berapa luas permukaan prisma tersebut?",
+                options: [
+                    "408 cm²",
+                    "428 cm²",
+                    "448 cm²",
+                    "468 cm²"
+                ],
+                correctAnswer: 0,
+                explanation: "Luas alas = 1/2 × 6 × 8 = 24 cm². Keliling alas = 6 + 8 + 10 = 24 cm. Luas permukaan = (2 × luas alas) + (keliling alas × tinggi) = (2 × 24) + (24 × 15) = 48 + 360 = 408 cm²."
+            },
+            // Soal 9
+            {
+                type: "short",
+                text: "Sebuah bola memiliki luas permukaan 616 cm². Berapa volume bola tersebut? (Gunakan π = 22/7)",
+                correctAnswer: "1437.33",
+                explanation: "Luas permukaan = 4πr² = 616 → 4 × (22/7) × r² = 616 → (88/7) × r² = 616 → r² = 49 → r = 7 cm. Volume = 4/3 πr³ = 4/3 × (22/7) × 343 = (4/3) × 22 × 49 = (4/3) × 1078 ≈ 1437,33 cm³."
+            },
+            // Soal 10
+            {
+                type: "multiple",
+                text: "Sebuah tabung tanpa tutup memiliki jari-jari 7 cm dan tinggi 10 cm. Berapa luas permukaan tabung tersebut? (Gunakan π = 22/7)",
+                options: [
+                    "484 cm²",
+                    "528 cm²",
+                    "572 cm²",
+                    "594 cm²"
+                ],
+                correctAnswer: 3,
+                explanation: "Luas alas = πr² = (22/7) × 49 = 154 cm². Luas selimut = 2πrt = 2 × (22/7) × 7 × 10 = 440 cm². Total luas = 154 + 440 = 594 cm²."
+            },
+            // Soal 11
+            {
+                type: "short",
+                text: "Sebuah kerucut terpancung (frustum) memiliki jari-jari atas 4 cm, jari-jari bawah 6 cm, dan tinggi 8 cm. Berapa volume kerucut terpancung tersebut? (Gunakan π = 3,14)",
+                correctAnswer: "634.72",
+                explanation: "Volume frustum = 1/3 πh (R² + Rr + r²) = 1/3 × 3,14 × 8 × (36 + 24 + 16) = 1/3 × 3,14 × 8 × 76 = 1/3 × 1904,32 ≈ 634,72 cm³."
+            },
+            // Soal 12
+            {
+                type: "multiple",
+                text: "Sebuah balok memiliki panjang 12 cm, lebar 8 cm, dan tinggi 6 cm. Berapa panjang diagonal ruang balok tersebut?",
+                options: [
+                    "√244 cm",
+                    "15,62 cm",
+                    "16,12 cm",
+                    "√308 cm"
+                ],
+                correctAnswer: 0,
+                explanation: "Diagonal ruang balok = √(p² + l² + t²) = √(144 + 64 + 36) = √244 cm."
+            }
+        ];
+
+        // PERBAIKAN: Debugging untuk memastikan data lengkap
+        console.log("Total pertanyaan:", questions.length);
+        questions.forEach((q, index) => {
+            console.log(`Soal ${index + 1}:`, q.type, q.text.substring(0, 50) + "...");
+        });
+
+        // Elemen DOM
+        const startScreen = document.getElementById('startScreen');
+        const materiScreen = document.getElementById('materiScreen');
+        const gameScreen = document.getElementById('gameScreen');
+        const pauseScreen = document.getElementById('pauseScreen');
+        const endScreen = document.getElementById('endScreen');
+        
+        const startBtn = document.getElementById('startBtn');
+        const materiBtn = document.getElementById('materiBtn');
+        const backFromMateriBtn = document.getElementById('backFromMateriBtn');
+        const startFromMateriBtn = document.getElementById('startFromMateriBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resumeBtn = document.getElementById('resumeBtn');
+        const backToMenuFromPauseBtn = document.getElementById('backToMenuFromPauseBtn');
+        const materiDuringGameBtn = document.getElementById('materiDuringGameBtn');
+        const nextQuestionBtn = document.getElementById('nextQuestionBtn');
+        const submitAnswerBtn = document.getElementById('submitAnswerBtn');
+        const geogebraBtn = document.getElementById('geogebraBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const backToMenuBtn = document.getElementById('backToMenuBtn');
+        const materiAfterGameBtn = document.getElementById('materiAfterGameBtn');
+        
+        const questionNumber = document.getElementById('questionNumber');
+        const questionText = document.getElementById('questionText');
+        const multipleChoiceOptions = document.getElementById('multipleChoiceOptions');
+        const shortAnswerInput = document.getElementById('shortAnswerInput');
+        const answerInput = document.getElementById('answerInput');
+        const explanationBox = document.getElementById('explanationBox');
+        const explanationText = document.getElementById('explanationText');
+        const scoreValue = document.getElementById('scoreValue');
+        const finalScore = document.getElementById('finalScore');
+        const progressBar = document.getElementById('progressBar');
+        
+        const correctSound = document.getElementById('correctSound');
+        const wrongSound = document.getElementById('wrongSound');
+        const bgMusic = document.getElementById('bgMusic');
+        
+        // Variabel game
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let isPaused = false;
+        let gameStarted = false;
+        
+        // Inisialisasi background dengan simbol matematika
+        function initMathBackground() {
+            const mathBg = document.getElementById('mathBackground');
+            const symbols = ['π', '∫', '∑', '√', '∞', '∆', 'θ', 'α', 'β', 'γ', '×', '÷', '=', '≠', '≈', '≤', '≥'];
+            
+            for (let i = 0; i < 50; i++) {
+                const symbol = document.createElement('div');
+                symbol.className = 'math-symbol';
+                symbol.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                symbol.style.left = `${Math.random() * 100}%`;
+                symbol.style.animationDuration = `${15 + Math.random() * 20}s`;
+                symbol.style.animationDelay = `${Math.random() * 5}s`;
+                mathBg.appendChild(symbol);
+            }
+        }
+        
+        // Memulai game
+        function startGame() {
+            currentQuestionIndex = 0;
+            score = 0;
+            updateScore();
+            showScreen(gameScreen);
+            loadQuestion();
+            gameStarted = true;
+            
+            // Mulai musik background
+            bgMusic.volume = 0.3;
+            bgMusic.play().catch(e => console.log("Autoplay diblokir: ", e));
+        }
+        
+        // PERBAIKAN: Fungsi loadQuestion dengan error handling
+        function loadQuestion() {
+            console.log("Memuat soal ke:", currentQuestionIndex + 1);
+            
+            // Cek apakah soal ada
+            if (currentQuestionIndex >= questions.length) {
+                console.log("Tidak ada soal lagi, game selesai");
+                endGame();
+                return;
+            }
+            
+            const question = questions[currentQuestionIndex];
+            
+            // Cek struktur data soal
+            if (!question || !question.text) {
+                console.error("Soal tidak valid:", question);
+                alert("Terjadi error: Data soal tidak valid!");
+                return;
+            }
+            
+            questionNumber.textContent = currentQuestionIndex + 1;
+            questionText.textContent = question.text;
+            
+            // Update progress bar
+            progressBar.style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+            
+            // Reset tampilan
+            explanationBox.style.display = 'none';
+            nextQuestionBtn.classList.add('hidden');
+            multipleChoiceOptions.innerHTML = '';
+            shortAnswerInput.classList.add('hidden');
+            
+            // Reset state tombol
+            submitAnswerBtn.disabled = false;
+            answerInput.disabled = false;
+            answerInput.value = '';
+            
+            if (question.type === "multiple") {
+                // Tampilkan opsi pilihan ganda
+                if (!question.options || question.options.length === 0) {
+                    console.error("Opsi pilihan ganda tidak ada untuk soal:", currentQuestionIndex + 1);
+                    return;
+                }
+                
+                question.options.forEach((option, index) => {
+                    const button = document.createElement('button');
+                    button.className = 'option-btn';
+                    button.textContent = option;
+                    button.onclick = () => checkAnswer(index);
+                    multipleChoiceOptions.appendChild(button);
+                });
+            } else if (question.type === "short") {
+                // Tampilkan input jawaban singkat
+                shortAnswerInput.classList.remove('hidden');
+                answerInput.value = '';
+                answerInput.focus();
+            } else {
+                console.error("Tipe soal tidak dikenali:", question.type);
+            }
+            
+            console.log("Soal berhasil dimuat");
+        }
+        
+        // PERBAIKAN: Fungsi checkAnswer dengan error handling
+        function checkAnswer(answer) {
+            console.log("Memeriksa jawaban untuk soal:", currentQuestionIndex + 1);
+            
+            const question = questions[currentQuestionIndex];
+            let isCorrect = false;
+            
+            if (question.type === "multiple") {
+                isCorrect = answer === question.correctAnswer;
+                console.log("Jawaban pilihan ganda:", answer, "Benar:", question.correctAnswer, "Hasil:", isCorrect);
+            } else {
+                const userAnswer = answerInput.value.trim().toLowerCase();
+                const correctAnswer = question.correctAnswer.toLowerCase();
+                isCorrect = userAnswer === correctAnswer;
+                console.log("Jawaban isian:", userAnswer, "Benar:", correctAnswer, "Hasil:", isCorrect);
+            }
+            
+            if (isCorrect) {
+                // Jawaban benar
+                score += 10;
+                updateScore();
+                correctSound.play();
+                
+                // Highlight jawaban benar (untuk pilihan ganda)
+                if (question.type === "multiple") {
+                    const buttons = document.querySelectorAll('.option-btn');
+                    buttons[question.correctAnswer].classList.add('correct');
+                }
+            } else {
+                // Jawaban salah
+                wrongSound.play();
+                
+                // Highlight jawaban benar dan salah (untuk pilihan ganda)
+                if (question.type === "multiple") {
+                    const buttons = document.querySelectorAll('.option-btn');
+                    buttons[question.correctAnswer].classList.add('correct');
+                    
+                    // Highlight jawaban salah (jika ada)
+                    if (answer !== question.correctAnswer) {
+                        buttons[answer].classList.add('wrong');
+                    }
+                }
+            }
+            
+            // Tampilkan penjelasan
+            explanationText.textContent = question.explanation;
+            explanationBox.style.display = 'block';
+            
+            // Tampilkan tombol berikutnya
+            nextQuestionBtn.classList.remove('hidden');
+            
+            // Nonaktifkan tombol opsi
+            if (question.type === "multiple") {
+                const buttons = document.querySelectorAll('.option-btn');
+                buttons.forEach(btn => {
+                    btn.onclick = null;
+                    btn.style.cursor = 'default';
+                });
+            } else {
+                submitAnswerBtn.disabled = true;
+                answerInput.disabled = true;
+            }
+            
+            console.log("Pemeriksaan jawaban selesai");
+        }
+        
+        // Pindah ke pertanyaan berikutnya
+        function nextQuestion() {
+            console.log("Pindah ke soal berikutnya");
+            currentQuestionIndex++;
+            
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                // Game selesai
+                endGame();
+            }
+        }
+        
+        // Mengakhiri game
+        function endGame() {
+            console.log("Game selesai. Skor akhir:", score);
+            finalScore.textContent = score;
+            showScreen(endScreen);
+            gameStarted = false;
+        }
+        
+        // Memperbarui tampilan skor
+        function updateScore() {
+            scoreValue.textContent = score;
+        }
+        
+        // Menampilkan layar tertentu dan menyembunyikan yang lain
+        function showScreen(screen) {
+            startScreen.classList.add('hidden');
+            materiScreen.classList.add('hidden');
+            gameScreen.classList.add('hidden');
+            pauseScreen.classList.add('hidden');
+            endScreen.classList.add('hidden');
+            
+            screen.classList.remove('hidden');
+        }
+        
+        // Event listeners
+        startBtn.addEventListener('click', startGame);
+        materiBtn.addEventListener('click', () => showScreen(materiScreen));
+        backFromMateriBtn.addEventListener('click', () => showScreen(startScreen));
+        startFromMateriBtn.addEventListener('click', startGame);
+        pauseBtn.addEventListener('click', () => {
+            isPaused = true;
+            showScreen(pauseScreen);
+        });
+        resumeBtn.addEventListener('click', () => {
+            isPaused = false;
+            showScreen(gameScreen);
+        });
+        backToMenuFromPauseBtn.addEventListener('click', () => {
+            isPaused = false;
+            showScreen(startScreen);
+        });
+        materiDuringGameBtn.addEventListener('click', () => {
+            showScreen(materiScreen);
+        });
+        nextQuestionBtn.addEventListener('click', nextQuestion);
+        submitAnswerBtn.addEventListener('click', () => checkAnswer(answerInput.value));
+        answerInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                checkAnswer(answerInput.value);
+            }
+        });
+        geogebraBtn.addEventListener('click', () => {
+            // Buka Geogebra dengan bangun ruang yang sesuai
+            const shapes = ['cube', 'cuboid', 'cylinder', 'cone', 'sphere', 'pyramid', 'prism'];
+            const randomShape = shapes[Math.floor(Math.random() * shapes.length)];
+            window.open(`https://www.geogebra.org/3d?lang=id&material=${randomShape}`, '_blank');
+        });
+        restartBtn.addEventListener('click', startGame);
+        backToMenuBtn.addEventListener('click', () => showScreen(startScreen));
+        materiAfterGameBtn.addEventListener('click', () => showScreen(materiScreen));
+        
+        // Inisialisasi
+        initMathBackground();
+        console.log("Game berhasil diinisialisasi");
+        
+        // Mengizinkan audio setelah interaksi pengguna
+        document.body.addEventListener('click', () => {
+            if (!gameStarted) {
+                bgMusic.volume = 0.3;
+                bgMusic.play().catch(e => console.log("Autoplay diblokir: ", e));
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>
